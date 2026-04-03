@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from src.order.enums import OrderStatus
 
 class ProductSchema(BaseModel):
     name : str
@@ -14,3 +15,7 @@ class ProductResponse(BaseModel):
     price : int
     disc_price : int
     stock : bool = True
+
+class OrderStatusSchema(BaseModel):
+    status : OrderStatus
+    user_id : int

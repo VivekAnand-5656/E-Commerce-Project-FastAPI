@@ -12,3 +12,4 @@ class UserModel(Base):
     hash_password = Column(String(200), nullable=False, unique=True)
     
     carts = relationship("CartModel", back_populates="user")
+    orders = relationship("OrderModel", back_populates="user")

@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 
-class CartSchema(BaseModel):
-    user_id : int
+class CartSchema(BaseModel): 
     product_id : int
     quantity : int

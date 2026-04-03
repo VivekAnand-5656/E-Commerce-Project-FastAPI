@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from src.users import user_controller
 from src.users.dtos import UserSchema, LoginSchema
 from src.carts.dtos import CartSchema
+from src.users.models import UserModel
+from src.utills.helpers import is_login
 
 user_routes = APIRouter(prefix="/users")
 
@@ -18,5 +20,15 @@ def login(body:LoginSchema, db:Session=Depends(get_db)):
 
 # ===== Add to Cart ====
 @user_routes.post("/addtocart")
-def add_to_cart(body:CartSchema,db:Session = Depends(get_db)):
-    return user_controller.add_to_cart(body,db)
+def add_to_cart(body:CartSchema,db:Session = Depends(get_db), user:UserModel = Depends(is_login)):
+    return user_controller.add_to_cart(body,db,user)
+
+# ======= Get All Products =====
+@user_routes.get("/products")
+def all_products(db:Session = Depends(get_db), user:UserModel=Depends(is_login)):
+    return user_controller.all_products(db,user)
+
+# ===== Order Placed =====
+@user_routes.post("/orderplace")
+def order(db:Session = Depends(get_db), user:UserModel = Depends(is_login)):
+    return user_controller.order_product(db,user)

@@ -1,7 +1,8 @@
 from src.users.dtos import UserSchema, LoginSchema
 from sqlalchemy.orm import Session
 from src.users.models import UserModel
-from fastapi import HTTPException, status, Request
+from fastapi import HTTPException, status, Request, Depends
+from src.utills.db import get_db
 from pwdlib import PasswordHash
 from src.utills.setting import setting
 from datetime import datetime,timedelta, timezone
@@ -10,6 +11,12 @@ from jwt.exceptions import InvalidTokenError,ExpiredSignatureError
 
 from src.carts.dtos import CartSchema
 from src.carts.models import CartModel
+
+from src.admin.models import ProductModel
+# ===== Order Model ====
+from src.order.model import OrderModel
+from src.order.dtos import OrderSchema
+from src.order.enums import Enum, OrderStatus
 
 password_hash = PasswordHash.recommended()
 
@@ -62,6 +69,7 @@ def login(body:LoginSchema, db:Session):
         "exp":exp_time
     }
     token = jwt.encode(
+        payload,
         setting.SECRET_KEY,
         setting.ALGORITHM
     )
@@ -73,10 +81,10 @@ def login(body:LoginSchema, db:Session):
 
 # ------- Token Send --------
 # =========== Add To Cart ==========
-def add_to_cart(body:CartSchema,db:Session):
+def add_to_cart(body:CartSchema,db:Session, user):
     print(body.model_dump())
     cart = CartModel(
-        user_id = body.user_id,
+        user_id = user.id,
         product_id = body.product_id,
         quantity = body.quantity
     )
@@ -87,4 +95,62 @@ def add_to_cart(body:CartSchema,db:Session):
     return {
         "status":"Product added to Cart Successfully",
         "cart":cart
+    }
+
+# ==== Token Send ====
+def is_login(request:Request, db:Session=Depends(get_db)):
+    try:
+        token = request.headers.get("Authorizatoni")
+        if not token:
+            raise HTTPException(401, detail="Authorization headers missing")
+        token = token.split(" ")[-1]
+        data = jwt.decode(token, setting.SECRET_KEY, setting.ALGORITHM)
+        user_id = data.get("_id")
+        if user_id is None:
+            raise HTTPException(401, detail="Please Login First")
+        user = db.query(UserModel).filter(UserModel.id == user_id).first()
+
+        if not user:
+            raise HTTPException(401, detail="Login Please")
+        print(data)
+        return user
+    except ExpiredSignatureError:
+        raise HTTPException(401, detail="Token Expired")
+    except InvalidTokenError:
+        raise HTTPException(401, detail="Invalid Toen")
+    
+# ======== Get Products =======
+def all_products(db:Session, user):
+    products = db.query(ProductModel).all()
+    return products
+
+# ======== Order Placed ======
+def order_product(db:Session,user):
+    cart_items = db.query(CartModel).filter(CartModel.user_id == user.id).all()
+    print(cart_items)
+    if not cart_items:
+        raise HTTPException(400, detail="Cart is Empty")
+    total = 0
+    for item in cart_items:
+        product = db.query(ProductModel).filter(ProductModel.id == item.product_id).first()
+        total += product.disc_price * item.quantity
+
+    print("Total Price:- ",total)
+    new_order = OrderModel(
+        user_id = user.id,
+        total_price = total,
+        status = OrderStatus.pending
+    )
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+
+    for item in cart_items:
+        db.delete(item)
+
+    db.commit()
+
+    return {
+        "status":"Order Placed Succesfylly",
+        "order":new_order
     }

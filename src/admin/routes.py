@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 from src.utills.db import get_db
 from src.admin import controller
-from src.admin.dtos import ProductSchema
-# ---------- users ----- 
+from src.admin.dtos import ProductSchema, OrderStatusSchema
+ 
 
 admin_routes = APIRouter(prefix="/admin")
 
@@ -39,3 +39,8 @@ def delete_product(product_id:int, db:Session = Depends(get_db)):
 @admin_routes.get("/allUser")
 def all_users(db:Session=Depends(get_db)):
     return controller.all_users(db)
+
+# === Place Order ===
+@admin_routes.put("/orderupdate")
+def update_order(body:OrderStatusSchema, db:Session=Depends(get_db)):
+    return controller.update_order_status(body,db)

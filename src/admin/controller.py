@@ -1,9 +1,12 @@
-from src.admin.dtos import ProductSchema, ProductResponse
+from src.admin.dtos import ProductSchema, ProductResponse, OrderStatusSchema
 from sqlalchemy.orm import Session
 from src.admin.models import ProductModel
 from fastapi import HTTPException, Request
 from src.users.models import UserModel
 
+# ---- Order Status ------
+from src.order.enums import Enum, OrderStatus
+from src.order.model import OrderModel 
 
 
 # ======== Create Product ==========
@@ -52,3 +55,20 @@ def delete_product(product_id:int, db:Session):
 def all_users(db:Session):
     users = db.query(UserModel).all()
     return users
+
+# ======= Update Order Status ========
+def update_order_status(body:OrderStatusSchema,db:Session):
+    orders = db.query(OrderModel).filter(OrderModel.user_id == body.user_id).first()
+    print(orders)
+    if not orders:
+        raise HTTPException(404, detail="Orders Empty")
+     
+    orders.status = body.status
+ 
+    db.commit()
+    db.refresh(orders)
+    return {
+        "status":" Order Shipped",
+        "order id": orders.id,
+        "order status" : orders.status
+    }
