@@ -11,5 +11,7 @@ class ProductModel(Base):
     price = Column(Integer)
     disc_price = Column(Integer)
     stock = Column(Boolean)
+    catagory = Column(String(200))
+    image = Column(String, nullable=True)
 
     carts = relationship("CartModel", back_populates="product")

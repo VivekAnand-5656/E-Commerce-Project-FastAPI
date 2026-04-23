@@ -1,11 +1,27 @@
-from fastapi import APIRouter, Depends, status, Request
+from fastapi import APIRouter, Depends, status, Request, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from src.utills.db import get_db
 from src.admin import controller
 from src.admin.dtos import ProductSchema, OrderStatusSchema
- 
 
+# ---- file uploading  
+import shutil
+import uuid
+import os
 admin_routes = APIRouter(prefix="/admin")
+
+# -------- File Upload -----
+def save_image(file:UploadFile):
+    os.makedirs("uploads",exist_ok=True)
+
+    ext = file.filename.split(".")[-1]
+    file_name = f"{uuid.uuid4()}.{ext}"
+    file_path = f"uploads/{file_name}"
+
+    with open(file_path,"wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    return file_path
 
 @admin_routes.get("/")
 def welcome():
@@ -15,9 +31,29 @@ def welcome():
 
 # ==== Add Product ====
 @admin_routes.post("/addproduct")
-def create_product(body:ProductSchema, db:Session = Depends(get_db)):
-    # print(body.id)
-    return controller.create_product(body,db)
+@admin_routes.post("/addproduct")
+def create_product(
+    name: str = Form(...),
+    description: str = Form(...),
+    price: int = Form(...),
+    disc_price: int = Form(...),
+    stock: bool = Form(...),
+    catagory: str = Form(...),
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    image_path = save_image(image)
+
+    return controller.create_product_with_image(
+        name,
+        description,
+        price,
+        disc_price,
+        stock,
+        catagory,
+        image_path,
+        db
+    )
 
 # ===== Get Products =====
 @admin_routes.get("/allproducts")
@@ -44,3 +80,5 @@ def all_users(db:Session=Depends(get_db)):
 @admin_routes.put("/orderupdate")
 def update_order(body:OrderStatusSchema, db:Session=Depends(get_db)):
     return controller.update_order_status(body,db)
+
+# ----- image Upload ----

@@ -10,16 +10,42 @@ from src.order.model import OrderModel
 
 
 # ======== Create Product ==========
-def create_product(body:ProductSchema,db:Session):
-    # data = body.model_dump()
-    print(body.model_dump())
+# def create_product(body:ProductSchema,db:Session):
+#     # data = body.model_dump()
+#     print(body.model_dump())
     
+#     new_product = ProductModel(
+#         name = body.name,
+#         description = body.description,
+#         price = body.price,
+#         disc_price = body.disc_price,
+#         stock = body.stock
+#     )
+
+#     db.add(new_product)
+#     db.commit()
+#     db.refresh(new_product)
+
+#     return new_product
+
+def create_product_with_image(
+    name:str,
+    description:str,
+    price:int,
+    disc_price:int,
+    stock:bool,
+    catagory:str,
+    image_path:str,
+    db:Session
+):
     new_product = ProductModel(
-        name = body.name,
-        description = body.description,
-        price = body.price,
-        disc_price = body.disc_price,
-        stock = body.stock
+        name=name,
+        description=description,
+        price=price,
+        disc_price=disc_price,
+        stock=stock,
+        catagory = catagory,
+        image=image_path
     )
 
     db.add(new_product)
