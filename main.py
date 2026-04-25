@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 # --- Image Uploading ---
 from fastapi.staticfiles import StaticFiles
 
+from contextlib import asynccontextmanager
+
 
 app = FastAPI(title="This is my E-Commerce Project")
 app.add_middleware(
@@ -16,7 +18,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)     for localhost
+# --- for Neon  
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup code
+    Base.metadata.create_all(bind=engine)
+    yield
+
 
 app.include_router(admin_routes) 
 app.include_router(user_routes)
