@@ -1,32 +1,12 @@
-from src.admin.dtos import ProductSchema, ProductResponse, OrderStatusSchema
+from src.admin.dtos import ProductSchema, ProductResponse, OrderStatusSchema, NewArrivalProductSchema
 from sqlalchemy.orm import Session
-from src.admin.models import ProductModel
+from src.admin.models import ProductModel, NewArrivalModel
 from fastapi import HTTPException, Request
 from src.users.models import UserModel
 
 # ---- Order Status ------
 from src.order.enums import Enum, OrderStatus
 from src.order.model import OrderModel 
-
-
-# ======== Create Product ==========
-# def create_product(body:ProductSchema,db:Session):
-#     # data = body.model_dump()
-#     print(body.model_dump())
-    
-#     new_product = ProductModel(
-#         name = body.name,
-#         description = body.description,
-#         price = body.price,
-#         disc_price = body.disc_price,
-#         stock = body.stock
-#     )
-
-#     db.add(new_product)
-#     db.commit()
-#     db.refresh(new_product)
-
-#     return new_product
 
 def create_product_with_image(
     name:str,
@@ -54,9 +34,41 @@ def create_product_with_image(
 
     return new_product
 
+# ----- Create New Arrival Product ---------
+def create_new_arrival(
+    name:str,
+    description:str,
+    price:int,
+    disc_price:int,
+    stock:bool,
+    catagory:str,
+    image_path:str,
+    db:Session
+):
+    new_product = NewArrivalModel(
+        name=name,
+        description=description,
+        price=price,
+        disc_price=disc_price,
+        stock=stock,
+        catagory = catagory,
+        image=image_path
+    )
+
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+
+    return new_product
+
 # ===== Get All Products ========
 def get_all_products(db:Session):
     products = db.query(ProductModel).all()
+    return products
+
+# ----- Get all Arrival Products ------
+def get_all_new_arrival_products(db:Session):
+    products = db.query(NewArrivalModel).all()
     return products
 # ======= Get Product By Id =======
 def get_one_product(product_id:int,db:Session):

@@ -1,6 +1,7 @@
 from src.users.dtos import UserSchema, LoginSchema
 from sqlalchemy.orm import Session
 from src.users.models import UserModel
+from src.admin.models import NewArrivalModel
 from fastapi import HTTPException, status, Request, Depends
 from src.utills.db import get_db
 from pwdlib import PasswordHash
@@ -123,7 +124,10 @@ def is_login(request:Request, db:Session=Depends(get_db)):
 def all_products(db:Session, user):
     products = db.query(ProductModel).all()
     return products
-
+# ---- Get new arrival products ----
+def get_new_arrival(db:Session,user):
+    products = db.query(NewArrivalModel).all()
+    return products
 # ======== Order Placed ======
 def order_product(db:Session,user):
     cart_items = db.query(CartModel).filter(CartModel.user_id == user.id).all()

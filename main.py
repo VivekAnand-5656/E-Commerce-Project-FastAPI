@@ -2,11 +2,20 @@ from fastapi import FastAPI
 from src.utills.db import Base, engine
 from src.admin.routes import admin_routes
 from src.users.routers import user_routes
+from fastapi.middleware.cors import CORSMiddleware
 # --- Image Uploading ---
 from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI(title="This is my E-Commerce Project")
+app.add_middleware(
+    CORSMiddleware,
+    # allow_origins=["http://localhost:5173"], 
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 Base.metadata.create_all(engine)
 
 app.include_router(admin_routes) 

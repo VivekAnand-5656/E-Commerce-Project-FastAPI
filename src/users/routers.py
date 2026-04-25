@@ -28,6 +28,10 @@ def add_to_cart(body:CartSchema,db:Session = Depends(get_db), user:UserModel = D
 def all_products(db:Session = Depends(get_db), user:UserModel=Depends(is_login)):
     return user_controller.all_products(db,user)
 
+# --- Get All new arrival -----
+@user_routes.get("/allnewarrivalproducts")
+def all_new_arrival_product(db:Session=Depends(get_db), user:UserModel= Depends(is_login)):
+    return user_controller.get_new_arrival(db,user)
 # ===== Order Placed =====
 @user_routes.post("/orderplace")
 def order(db:Session = Depends(get_db), user:UserModel = Depends(is_login)):

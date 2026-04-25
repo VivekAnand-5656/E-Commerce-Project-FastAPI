@@ -30,8 +30,7 @@ def welcome():
     }
 
 # ==== Add Product ====
-@admin_routes.post("/addproduct")
-@admin_routes.post("/addproduct")
+@admin_routes.post("/addproduct") 
 def create_product(
     name: str = Form(...),
     description: str = Form(...),
@@ -55,10 +54,39 @@ def create_product(
         db
     )
 
+# ----- Add New Arrival Product ----
+@admin_routes.post("/addnewarrivalproduct") 
+def create_newarrival_product(
+    name: str = Form(...),
+    description: str = Form(...),
+    price: int = Form(...),
+    disc_price: int = Form(...),
+    stock: bool = Form(...),
+    catagory: str = Form(...),
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    image_path = save_image(image)
+
+    return controller.create_new_arrival(
+        name,
+        description,
+        price,
+        disc_price,
+        stock,
+        catagory,
+        image_path,
+        db
+    )
+
 # ===== Get Products =====
 @admin_routes.get("/allproducts")
 def allProducts(db:Session = Depends(get_db)):
     return controller.get_all_products(db)
+# ---- Get arrival products ------
+@admin_routes.get("/newarrivalproducts")
+def allnewarrival(db:Session = Depends(get_db)):
+    return controller.get_all_new_arrival_products(db)
 
 @admin_routes.get("/getproductById/{product_id}")
 def get_one_product(product_id:int , db:Session = Depends(get_db)):

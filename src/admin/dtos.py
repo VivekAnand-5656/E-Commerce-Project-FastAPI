@@ -9,6 +9,14 @@ class ProductSchema(BaseModel):
     stock : bool = True
     catagory : str
 
+class NewArrivalProductSchema(BaseModel): 
+    name : str
+    description : str
+    price : int
+    disc_price : int
+    stock : bool = True
+    catagory : str
+
 class ProductResponse(BaseModel):
     id : int
     name : str
