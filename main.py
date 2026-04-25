@@ -24,7 +24,7 @@ app.add_middleware(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup code
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_tables(bind=engine)
     yield
 
 

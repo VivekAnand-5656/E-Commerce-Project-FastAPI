@@ -15,7 +15,9 @@ engine = create_engine(
     pool_pre_ping=True,
     pool_recycle=300
 )
-
+def create_tables():
+    Base.metadata.create_all(bind=engine)
+    
 LocalSession = sessionmaker(
     autocommit=False,
     autoflush=False,
