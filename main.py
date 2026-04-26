@@ -9,7 +9,10 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
 
-app = FastAPI(title="This is my E-Commerce Project")
+app = FastAPI(
+    title="This is my E-Commerce Project",
+    lifespan=lifespan
+    )
 app.add_middleware(
     CORSMiddleware,
     # allow_origins=["http://localhost:5173"], 
@@ -24,7 +27,8 @@ app.add_middleware(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup code
-    Base.metadata.create_tables(bind=engine)
+    print("Creating Tables....")
+    Base.metadata.create_all(bind=engine)
     yield
 
 
