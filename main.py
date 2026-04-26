@@ -9,6 +9,14 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup code
+    print("Creating Tables....")
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
 app = FastAPI(
     title="This is my E-Commerce Project",
     lifespan=lifespan
