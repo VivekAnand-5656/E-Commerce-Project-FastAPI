@@ -17,13 +17,16 @@ class NewArrivalProductSchema(BaseModel):
     stock : bool = True
     catagory : str
 
-class ProductResponse(BaseModel):
-    id : int
-    name : str
-    description : str
-    price : int
-    disc_price : int
-    stock : bool = True
+class ProductResponse(BaseModel): 
+    name:str
+    description:str
+    price:int
+    disc_price:int
+    stock:bool
+    catagory:str
+    image:str
+
+   
 
 class OrderStatusSchema(BaseModel):
     status : OrderStatus

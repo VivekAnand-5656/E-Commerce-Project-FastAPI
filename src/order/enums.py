@@ -1,8 +1,8 @@
 from enum import Enum
 
 class OrderStatus(str,Enum):
-    pending = "pending"
-    confirmed = "confirmed"
+    pending = "pending" 
     shipped = "shipped"
+    paid = "paid"
     delivered = "delivered"
     cancelled = "cancelled"

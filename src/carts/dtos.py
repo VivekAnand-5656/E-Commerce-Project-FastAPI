@@ -1,5 +1,7 @@
 from pydantic import BaseModel
+from src.admin.dtos import ProductResponse
 
-class CartSchema(BaseModel): 
-    product_id : int
-    quantity : int
+ 
+
+class CartResponse(BaseModel): 
+    product : ProductResponse

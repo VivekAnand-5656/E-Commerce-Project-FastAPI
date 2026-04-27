@@ -1,4 +1,5 @@
-from src.users.dtos import UserSchema, LoginSchema
+from src.users.dtos import UserSchema, LoginSchema, ForgotPasswordSchema, ResetPasswordSchema, SearchProductSchema, FilterByCatagorySchema
+from src.admin.dtos import ProductSchema
 from sqlalchemy.orm import Session
 from src.users.models import UserModel
 from src.admin.models import NewArrivalModel
@@ -9,8 +10,7 @@ from src.utills.setting import setting
 from datetime import datetime,timedelta, timezone
 import jwt
 from jwt.exceptions import InvalidTokenError,ExpiredSignatureError
-
-from src.carts.dtos import CartSchema
+from sqlalchemy import func 
 from src.carts.models import CartModel
 
 from src.admin.models import ProductModel
@@ -18,6 +18,10 @@ from src.admin.models import ProductModel
 from src.order.model import OrderModel
 from src.order.dtos import OrderSchema
 from src.order.enums import Enum, OrderStatus
+
+# ========= Forgot Password ============
+from src.users.resettoken import create_reset_token
+
 
 password_hash = PasswordHash.recommended()
 
@@ -82,20 +86,94 @@ def login(body:LoginSchema, db:Session):
 
 # ------- Token Send --------
 # =========== Add To Cart ==========
-def add_to_cart(body:CartSchema,db:Session, user):
-    print(body.model_dump())
+def add_to_cart(productid:int,db:Session, user): 
+    product = db.query(ProductModel).filter(ProductModel.id == productid).first()
+    if not product:
+        raise HTTPException(404, detail="Product not found")
+    # === Testing ====
+    cart_items = db.query(CartModel).filter(CartModel.user_id == user.id).all()
+    for item in cart_items:
+        print("Name:-",item.product.name)
+        print("Price:", item.product.price)
+        print("-------------") 
+
     cart = CartModel(
         user_id = user.id,
-        product_id = body.product_id,
-        quantity = body.quantity
+        product_id = productid,
+        quantity = 1
     )
     db.add(cart)
     db.commit()
     db.refresh(cart)
 
+    return  product
+
+# ======= Increase Quantity of Cart ==========
+def update_quantity(productid:int,db:Session,user): 
+    cartitem = db.query(CartModel).filter(CartModel.user_id == user.id, CartModel.product_id == productid).first()
+    if not cartitem:
+        raise HTTPException(404, detail="Product not in Cart")
+    
+    cartitem.quantity += 1
+    db.commit()
+    db.refresh(cartitem)
+
     return {
-        "status":"Product added to Cart Successfully",
-        "cart":cart
+        "status":"Quantity Updated",
+        "quantity":cartitem.quantity
+    }
+# ======= Decrease Quantity of Cart ==========
+def decrease_quantity(productid:int,db:Session,user): 
+    cartitem = db.query(CartModel).filter(CartModel.user_id == user.id, CartModel.product_id == productid).first()
+    if not cartitem:
+        raise HTTPException(404, detail="Product not in Cart")
+    
+    cartitem.quantity -= 1
+    if cartitem.quantity == 0:
+        db.delete(cartitem)
+        db.commit()
+        return {
+            "msg":"Product Removed from Cart"
+        }
+    db.commit()
+    db.refresh(cartitem)
+
+    return {
+        "status":"Quantity Updated",
+        "quantity":cartitem.quantity
+    }
+
+# ========= Get User Cart ======
+def get_user_cart(db:Session,user):
+    carts = db.query(CartModel).all()
+    if len(carts) == 0:
+        raise HTTPException(404, detail="Cart is Empty")
+    return carts
+
+# ======= Remove From Cart ======
+def remove_item_cart(cartId:int,db:Session,user):
+    cart = db.query(CartModel).filter(CartModel.id == cartId).first()
+    if not cart:
+        raise HTTPException(404, detail="Cart not found")
+    db.delete(cart)
+    db.commit()
+
+    return {
+        "status":"Cart Removed",
+        "cart": cart
+    }
+
+# ====== Clear All Cart ========
+def clear_cart(db:Session,user):
+    carts = db.query(CartModel).filter(CartModel.user_id == user.id)
+
+    if not carts.first():
+        raise HTTPException(404, detail="Cart is Empty")
+    
+    carts.delete(synchronize_session=False)
+    db.commit()
+    return {
+        "status":"Cart Cleared"
     }
 
 # ==== Token Send ====
@@ -158,3 +236,52 @@ def order_product(db:Session,user):
         "status":"Order Placed Succesfylly",
         "order":new_order
     }
+
+# -------------- Forgot Password --------------
+def forgot_password(body:ForgotPasswordSchema,db:Session):
+    user = db.query(UserModel).filter(UserModel.email == body.email).first()
+    if not user:
+        raise HTTPException(404, "User with this email not found")
+    reset_token = create_reset_token(user.id)
+    return {
+        "msg": "Password reset token generated",
+        "reset_token": reset_token
+    }
+
+# ---- Reset Password ----
+def reset_password(body:ResetPasswordSchema,db:Session):
+    try:
+        payload = jwt.decode(body.token, setting.SECRET_KEY, algorithms=[setting.ALGORITHM])
+        user_id = payload.get("_id")
+        user = db.query(UserModel).filter(UserModel.id == user_id).first()
+        if not user:
+            raise HTTPException(404, "User not found")
+        
+        hashed_password = get_password_hash(body.newpassword)
+        user.hash_password = hashed_password
+        db.commit()
+        return {"msg": "Password reset successful"}
+    except ExpiredSignatureError:
+        raise HTTPException(400, "Reset token expired")
+
+    except InvalidTokenError:
+        raise HTTPException(400, "Invalid reset token")
+
+# ------ Get User Profile -------
+def get_user_profile(current_user):
+    return {
+        "id":current_user.id,
+        "name":current_user.name,
+        "email": current_user.email
+    }
+
+# ========= Search Products ========
+def search_products(body:SearchProductSchema,db:Session): 
+    product = (db.query(ProductModel).filter(ProductModel.name.ilike(f"%{body.product_name}%")).all()) 
+    return product
+
+# ======= Filter By Catagory ======
+def filter_by_catagory(body:FilterByCatagorySchema,db:Session):
+    products = (db.query(ProductModel).filter(ProductModel.catagory.ilike(f"%{body.catagory}%")).all())
+    return products
+

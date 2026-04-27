@@ -108,5 +108,4 @@ def all_users(db:Session=Depends(get_db)):
 @admin_routes.put("/orderupdate")
 def update_order(body:OrderStatusSchema, db:Session=Depends(get_db)):
     return controller.update_order_status(body,db)
-
-# ----- image Upload ----
+ 

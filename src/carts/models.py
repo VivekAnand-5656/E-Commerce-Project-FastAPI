@@ -8,8 +8,9 @@ class CartModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
-    quantity = Column(Integer, nullable=False)
-    # ----- relationship 
+    quantity = Column(Integer, nullable=False) 
+
+    # ----- relationship ----------
 
     user = relationship("UserModel", back_populates="carts")
     product = relationship("ProductModel", back_populates="carts")
