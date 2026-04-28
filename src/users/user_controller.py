@@ -100,7 +100,8 @@ def add_to_cart(productid:int,db:Session, user):
     cart = CartModel(
         user_id = user.id,
         product_id = productid,
-        quantity = 1
+        quantity = 1,
+        carttotal = product.price
     )
     db.add(cart)
     db.commit()
@@ -115,12 +116,14 @@ def update_quantity(productid:int,db:Session,user):
         raise HTTPException(404, detail="Product not in Cart")
     
     cartitem.quantity += 1
+    cartitem.carttotal = cartitem.quantity * cartitem.product.price
     db.commit()
     db.refresh(cartitem)
 
     return {
         "status":"Quantity Updated",
-        "quantity":cartitem.quantity
+        "quantity":cartitem.quantity,
+        "totalcartprice" : cartitem.carttotal
     }
 # ======= Decrease Quantity of Cart ==========
 def decrease_quantity(productid:int,db:Session,user): 
@@ -129,6 +132,7 @@ def decrease_quantity(productid:int,db:Session,user):
         raise HTTPException(404, detail="Product not in Cart")
     
     cartitem.quantity -= 1
+    cartitem.carttotal = cartitem.carttotal - cartitem.product.price
     if cartitem.quantity == 0:
         db.delete(cartitem)
         db.commit()
@@ -140,7 +144,8 @@ def decrease_quantity(productid:int,db:Session,user):
 
     return {
         "status":"Quantity Updated",
-        "quantity":cartitem.quantity
+        "quantity":cartitem.quantity,
+        "Cart Total":cartitem.carttotal
     }
 
 # ========= Get User Cart ======
@@ -207,6 +212,7 @@ def get_new_arrival(db:Session,user):
     products = db.query(NewArrivalModel).all()
     return products
 # ======== Order Placed ======
+# ===== This is Incomplete =====================================================================
 def order_product(db:Session,user):
     cart_items = db.query(CartModel).filter(CartModel.user_id == user.id).all()
     print(cart_items)
@@ -215,7 +221,7 @@ def order_product(db:Session,user):
     total = 0
     for item in cart_items:
         product = db.query(ProductModel).filter(ProductModel.id == item.product_id).first()
-        total += product.disc_price * item.quantity
+        total += item.carttotal
 
     print("Total Price:- ",total)
     new_order = OrderModel(
@@ -223,6 +229,8 @@ def order_product(db:Session,user):
         total_price = total,
         status = OrderStatus.pending
     )
+    print("Order Placed Successfully ✅")
+
     db.add(new_order)
     db.commit()
     db.refresh(new_order)
@@ -234,8 +242,16 @@ def order_product(db:Session,user):
 
     return {
         "status":"Order Placed Succesfylly",
-        "order":new_order
+        "Total ":total
     }
+
+# ============== Get My Orders ==============
+def get_my_orders(db:Session,user):
+    orders = db.query(OrderModel).all()
+    if len(orders) == 0:
+        raise HTTPException(404, detail="Order's is Empty")
+    
+    return orders
 
 # -------------- Forgot Password --------------
 def forgot_password(body:ForgotPasswordSchema,db:Session):

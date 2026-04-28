@@ -45,6 +45,10 @@ def all_new_arrival_product(db:Session=Depends(get_db), user:UserModel= Depends(
 @user_routes.post("/orderplace")
 def order(db:Session = Depends(get_db), user:UserModel = Depends(is_login)):
     return user_controller.order_product(db,user)
+# ============== Get My Orders ===============
+@user_routes.get("/myorders")
+def myorders(db:Session = Depends(get_db),user:UserModel = Depends(is_login)):
+    return user_controller.get_my_orders(db,user)
 
 # ====== Forgot Password ======
 @user_routes.post("/forgot-password")

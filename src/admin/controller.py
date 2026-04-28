@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from src.admin.models import ProductModel, NewArrivalModel
 from fastapi import HTTPException, Request
 from src.users.models import UserModel
+from src.carts.models import CartModel
 
 # ---- Order Status ------
 from src.order.enums import Enum, OrderStatus
@@ -96,17 +97,17 @@ def all_users(db:Session):
 
 # ======= Update Order Status ========
 def update_order_status(body:OrderStatusSchema,db:Session):
-    orders = db.query(OrderModel).filter(OrderModel.user_id == body.user_id).first()
+    orders = db.query(OrderModel).filter(OrderModel.id == body.order_id).first()
     print(orders)
     if not orders:
-        raise HTTPException(404, detail="Orders Empty")
+        raise HTTPException(404, detail="Cart is Empty")
      
     orders.status = body.status
  
     db.commit()
     db.refresh(orders)
     return {
-        "status":" Order Shipped",
+        "status":f"Order ${orders.status}",
         "order id": orders.id,
         "order status" : orders.status
     }

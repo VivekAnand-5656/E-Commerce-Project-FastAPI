@@ -30,4 +30,4 @@ class ProductResponse(BaseModel):
 
 class OrderStatusSchema(BaseModel):
     status : OrderStatus
-    user_id : int
+    order_id : int
