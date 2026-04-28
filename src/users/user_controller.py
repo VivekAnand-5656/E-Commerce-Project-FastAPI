@@ -91,21 +91,20 @@ def add_to_cart(productid:int,db:Session, user):
     if not product:
         raise HTTPException(404, detail="Product not found")
     # === Testing ====
-    cart_items = db.query(CartModel).filter(CartModel.user_id == user.id).all()
-    for item in cart_items:
-        print("Name:-",item.product.name)
-        print("Price:", item.product.price)
-        print("-------------") 
-
-    cart = CartModel(
-        user_id = user.id,
-        product_id = productid,
-        quantity = 1,
-        carttotal = product.price
-    )
-    db.add(cart)
+    cart_item = db.query(CartModel).filter(CartModel.user_id == user.id, CartModel.product_id == productid ).first()
+     
+    if cart_item:
+        cart_item.quantity += 1
+    else:
+        cart_item = CartModel(
+            user_id = user.id,
+            product_id = productid,
+            quantity = 1,
+            carttotal = product.price
+        )
+        db.add(cart_item)
     db.commit()
-    db.refresh(cart)
+    db.refresh(cart_item)
 
     return  product
 
