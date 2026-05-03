@@ -150,6 +150,9 @@ def decrease_quantity(productid:int,db:Session,user):
 # ========= Get User Cart ======
 def get_user_cart(db:Session,user):
     carts = db.query(CartModel).all()
+    
+    for pr in carts:
+        print("Cart Product:- ",pr.product)
     if len(carts) == 0:
         raise HTTPException(404, detail="Cart is Empty")
     return carts
