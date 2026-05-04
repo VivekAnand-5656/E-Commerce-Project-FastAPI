@@ -4,12 +4,24 @@ from src.utills.db import get_db
 from src.admin import controller
 from src.admin.dtos import ProductSchema, OrderStatusSchema
 
+# ====== Cloudinary Image =====
+from src.utills.helpers import upload_image_to_cloudinary
+
 # ---- file uploading  
 import shutil
 import uuid
 import os
 admin_routes = APIRouter(prefix="/admin")
 
+# ==== Image Upload to Cloudinary =====
+# @admin_routes.post("/upload-image")
+async def upload_image(image:UploadFile = File(...)):
+    image_url = await upload_image_to_cloudinary(image)
+
+    return {
+        "message": "Image uploaded successfully",
+        "image_url": image_url
+    }
 # -------- File Upload -----
 def save_image(file:UploadFile):
     os.makedirs("uploads",exist_ok=True)
@@ -41,7 +53,7 @@ def create_product(
     image: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    image_path = save_image(image)
+    image_path = upload_image_to_cloudinary(image)
 
     return controller.create_product_with_image(
         name,
@@ -66,7 +78,7 @@ def create_newarrival_product(
     image: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    image_path = save_image(image)
+    image_path = upload_image_to_cloudinary(image)
 
     return controller.create_new_arrival(
         name,

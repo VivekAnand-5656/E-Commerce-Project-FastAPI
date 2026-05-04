@@ -7,18 +7,19 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from src.utills.db import get_db 
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+# ==== Cloudinary ===
+import cloudinary.uploader
 security = HTTPBearer()
+
+async def upload_image_to_cloudinary(file):
+    result = cloudinary.uploader.upload(file.file)
+    return result("secure_url")
 
 def is_login(
         # request:Request, 
         credentials : HTTPAuthorizationCredentials=Depends(security),
         db:Session=Depends(get_db)):
-    try:
-        # token = request.headers.get("Authorization")
-        # if not token:
-        #     raise HTTPException(401, detail="Authorization headers missing")
-        # token = token.split(" ")[-1]
-
+    try: 
         token = credentials.credentials
         data = jwt.decode(token, setting.SECRET_KEY, setting.ALGORITHM)
         user_id = data.get("_id")
