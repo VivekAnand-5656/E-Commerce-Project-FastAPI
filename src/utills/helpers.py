@@ -11,9 +11,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import cloudinary.uploader
 security = HTTPBearer()
 
-async def upload_image_to_cloudinary(file):
-    result = cloudinary.uploader.upload(file.file)
-    return result("secure_url")
+# def upload_image_to_cloudinary(file):
+#     result = cloudinary.uploader.upload(file.file)
+#     return result("secure_url")
 
 def is_login(
         # request:Request, 
