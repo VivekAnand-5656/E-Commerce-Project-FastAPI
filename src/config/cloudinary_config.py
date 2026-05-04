@@ -1,7 +1,8 @@
-import cloudinary
+import cloudinary 
+from src.utills.setting import setting
 
 cloudinary.config(
-    cloud_name="dozbystkp",
-    api_key="929553466678271",
-    api_secret="NsrHAiNquZtFxXH06sXjXNV1StQ"
+    cloud_name= setting.CLOUD_NAME,
+    api_key= setting.API_KEY ,
+    api_secret= setting.API_SECRET 
 )

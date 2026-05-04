@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from src.utills.setting import setting
 from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 Base = declarative_base()
 # engine = create_engine(url=setting.DB_CONNECTION)

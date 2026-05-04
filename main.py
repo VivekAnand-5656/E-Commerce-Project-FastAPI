@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 # --- Image Uploading ---
 from fastapi.staticfiles import StaticFiles
 
+import src.config.cloudinary_config
+
 from contextlib import asynccontextmanager
 
 

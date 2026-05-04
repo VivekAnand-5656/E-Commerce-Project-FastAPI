@@ -5,8 +5,8 @@ from src.admin import controller
 from src.admin.dtos import ProductSchema, OrderStatusSchema
 
 # ====== Cloudinary Image =====
-# from src.utills.helpers import upload_image_to_cloudinary
-
+from src.utills.helpers import upload_image_to_cloudinary
+from src.config import cloudinary_config
 # ---- file uploading  
 import shutil
 import uuid
@@ -53,8 +53,8 @@ def create_product(
     image: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    # image_path = upload_image_to_cloudinary(image)
-    image_path = save_image(image)
+    image_path = upload_image_to_cloudinary(image)
+    # image_path = save_image(image)
 
     return controller.create_product_with_image(
         name,
@@ -79,8 +79,8 @@ def create_newarrival_product(
     image: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    # image_path = upload_image_to_cloudinary(image)
-    image_path = save_image(image)
+    image_path = upload_image_to_cloudinary(image)
+    # image_path = save_image(image)
 
     return controller.create_new_arrival(
         name,
@@ -110,7 +110,10 @@ def get_one_product(product_id:int , db:Session = Depends(get_db)):
 @admin_routes.delete("/delete_product/{product_id}")
 def delete_product(product_id:int, db:Session = Depends(get_db)):
     return controller.delete_product(product_id,db)
-
+# =========== Clear Products ===========
+@admin_routes.delete("/clearproducts")
+def clearAllProducts(db:Session = Depends(get_db)):
+    return controller.clearProducts(db)
 # ======================= Users ==============
 
 # ------- See All Users ---------

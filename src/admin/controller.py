@@ -77,6 +77,14 @@ def get_one_product(product_id:int,db:Session):
     if not product:
         raise HTTPException(404, detail="Product not found")
     return product
+# =========== Clear All Product ========
+def clearProducts(db:Session):
+    products = db.query(ProductModel).all()
+    if not products:
+        raise HTTPException(404,detail="Product is Empty")
+    db.query(ProductModel).delete()
+    db.commit()
+    return {"message": "All products deleted successfully"}
 # ======= Delete Product ======
 def delete_product(product_id:int, db:Session):
     product = db.query(ProductModel).filter(ProductModel.id == product_id).first()
