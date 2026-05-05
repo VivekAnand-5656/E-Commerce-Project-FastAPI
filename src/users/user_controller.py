@@ -14,10 +14,10 @@ from sqlalchemy import func
 from src.carts.models import CartModel
 
 from src.admin.models import ProductModel
-# ===== Order Model ====
-from src.order.model import OrderModel
+# ===== Order Model ==== 
 from src.order.dtos import OrderSchema
 from src.order.enums import Enum, OrderStatus
+from src.order.model import OrderModel, OrderItem
 
 # ========= Forgot Password ============
 from src.users.resettoken import create_reset_token
@@ -106,7 +106,7 @@ def add_to_cart(productid:int,db:Session, user):
     db.commit()
     db.refresh(cart_item)
 
-    return  product
+    return  product 
 
 # ======= Increase Quantity of Cart ==========
 def update_quantity(productid:int,db:Session,user): 
@@ -221,9 +221,12 @@ def order_product(db:Session,user):
     if not cart_items:
         raise HTTPException(400, detail="Cart is Empty")
     total = 0
+    products = []
     for item in cart_items:
         product = db.query(ProductModel).filter(ProductModel.id == item.product_id).first()
+        products.append(product)
         total += item.carttotal
+        
 
     print("Total Price:- ",total)
     new_order = OrderModel(
@@ -236,7 +239,19 @@ def order_product(db:Session,user):
     db.add(new_order)
     db.commit()
     db.refresh(new_order)
-
+    # ---------- Add order items -------
+    for item in cart_items:
+        product = db.query(ProductModel).filter(ProductModel.id == item.product_id ).first()
+        total += item.carttotal
+        order_item = OrderItem(
+            order_id = new_order.id,
+            product_id = item.product_id,
+            quantity = item.quantity,
+            price = product.price
+        )
+        db.add(order_item)
+    new_order.total_price = total
+# ---------- Delete Cart Items -------
     for item in cart_items:
         db.delete(item)
 
@@ -244,17 +259,44 @@ def order_product(db:Session,user):
 
     return {
         "status":"Order Placed Succesfylly",
-        "Total ":total
+        "Total ":total,
+        "New Order Id: ": new_order.id
     }
 
 # ============== Get My Orders ==============
-def get_my_orders(db:Session,user):
-    orders = db.query(OrderModel).all()
-    if len(orders) == 0:
-        raise HTTPException(404, detail="Order's is Empty")
-    
-    return orders
+def get_my_orders(db: Session, user):
 
+    orders = db.query(OrderModel).filter(OrderModel.user_id == user.id).all()
+
+    result = []
+
+    for order in orders:
+        items = db.query(OrderItem).filter(OrderItem.order_id == order.id).all()
+
+        order_data = {
+            "order_id": order.id,
+            "total_price": order.total_price,
+            "status": order.status,
+            "items": []
+        }
+
+        for item in items:
+            product = db.query(ProductModel).filter(ProductModel.id == item.product_id).first()
+            
+            order_data["items"].append({
+                "product": {
+                    "id": product.id,
+                    "image":product.image,
+                    "name": product.name,
+                    "price": product.price,
+                    "description": product.description
+                },
+                "quantity": item.quantity
+            })
+
+        result.append(order_data)
+
+    return result
 # -------------- Forgot Password --------------
 def forgot_password(body:ForgotPasswordSchema,db:Session):
     user = db.query(UserModel).filter(UserModel.email == body.email).first()
