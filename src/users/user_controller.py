@@ -332,7 +332,8 @@ def get_user_profile(current_user):
     return {
         "id":current_user.id,
         "name":current_user.name,
-        "email": current_user.email
+        "email": current_user.email,
+        "mobile":current_user.mobile
     }
 
 # ========= Search Products ========
