@@ -12,6 +12,7 @@ import jwt
 from jwt.exceptions import InvalidTokenError,ExpiredSignatureError
 from sqlalchemy import func 
 from src.carts.models import CartModel
+from src.wishlist.models import WishlistModel
 
 from src.admin.models import ProductModel
 # ===== Order Model ==== 
@@ -346,3 +347,46 @@ def filter_by_catagory(body:FilterByCatagorySchema,db:Session):
     products = (db.query(ProductModel).filter(ProductModel.catagory.ilike(f"%{body.catagory}%")).all())
     return products
 
+# ========= Add to Wishlist ==========
+def addToWishlist(productid:int,db:Session,user):
+    product = db.query(ProductModel).filter(ProductModel.id == productid).first()
+    if not product:
+        raise HTTPException(404, detail="Product not Found")
+    wislistItem = db.query(WishlistModel).filter(WishlistModel.user_id == user.id, WishlistModel.product_id == productid ).first()
+
+    if wislistItem:
+        return {
+            "msg":"Already added in wishlist"
+        }
+    else :
+        wislistItem = WishlistModel(
+            user_id = user.id,
+            product_id = productid
+        )
+        db.add(wislistItem)
+    
+    db.commit()
+    db.refresh(wislistItem)
+
+    return product
+
+# ==== Get Wishlist ====
+def getWishlist(db:Session,user):
+    wishlists = db.query(WishlistModel).all()
+    if len(wishlists) ==0:
+        raise HTTPException(404, detail="Wishlist is Empty")
+    for wish in wishlists:
+        print("Wishlist Products:- ",wish.product)
+    
+    return wishlists
+# ==== Remove from wishlist ======
+def removeWishlistProduct(wishlistid:int,db:Session,user):
+    wishlist = db.query(WishlistModel).filter(WishlistModel.id == wishlistid).first()
+    if not wishlist:
+        raise HTTPException(404, detail="Wishlist Product not found")
+    db.delete(wishlist)
+    db.commit()
+    return {
+        "status":"Wishlist Product Removed",
+        "wishlist":wishlist
+    }

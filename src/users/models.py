@@ -13,3 +13,4 @@ class UserModel(Base):
     
     carts = relationship("CartModel", back_populates="user")
     orders = relationship("OrderModel", back_populates="user")
+    wishlist = relationship("WishlistModel", back_populates="user")

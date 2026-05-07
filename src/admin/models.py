@@ -15,6 +15,7 @@ class ProductModel(Base):
     image = Column(String, nullable=True)
 
     carts = relationship("CartModel", back_populates="product")
+    wishlist = relationship("WishlistModel", back_populates="product")
 
 class NewArrivalModel(Base):
     __tablename__ = "newarrivalproduct"

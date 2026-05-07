@@ -7,6 +7,7 @@ from src.carts.dtos import CartResponse
 from src.users.models import UserModel
 from src.utills.helpers import is_login 
 from src.admin.dtos import ProductResponse
+from src.wishlist.dtos import WishlistResponse
 
 user_routes = APIRouter(prefix="/users")
 
@@ -88,3 +89,17 @@ def remove_cart(cartId:int,db:Session = Depends(get_db),user:UserModel = Depends
 @user_routes.delete("/clearcart")
 def clear_carts(db:Session = Depends(get_db),user:UserModel= Depends(is_login)):
     return user_controller.clear_cart(db,user)
+
+# ===== add to wishlist ====
+@user_routes.post("/addtowishlist/{productid}")
+def addWishlist(productid:int,db:Session=Depends(get_db),user:UserModel = Depends(is_login)):
+    return user_controller.addToWishlist(productid,db,user)
+
+# ==== Get Wishlist =====
+@user_routes.get("/getwishlists")
+def getWishlist(db:Session = Depends(get_db),user:UserModel= Depends(is_login)):
+    return user_controller.getWishlist(db,user)
+# ==== Remove Wishlist Product =====
+@user_routes.delete("/removewishlist/{wishlistid}")
+def removeWishlist(wishlistid:int,db:Session=Depends(get_db),user:UserModel = Depends(is_login)):
+    return user_controller.removeWishlistProduct(wishlistid,db,user)
