@@ -347,28 +347,46 @@ def filter_by_catagory(body:FilterByCatagorySchema,db:Session):
     products = (db.query(ProductModel).filter(ProductModel.catagory.ilike(f"%{body.catagory}%")).all())
     return products
 
-# ========= Add to Wishlist ==========
-def addToWishlist(productid:int,db:Session,user):
-    product = db.query(ProductModel).filter(ProductModel.id == productid).first()
+# ========= Add to Wishlist ==========def addToWishlist(productid: int, db: Session, user):
+def addToWishlist(productid: int, db: Session, user):
+    product = db.query(ProductModel).filter(
+        ProductModel.id == productid
+    ).first()
+
     if not product:
-        raise HTTPException(404, detail="Product not Found")
-    wislistItem = db.query(WishlistModel).filter(WishlistModel.user_id == user.id, WishlistModel.product_id == productid ).first()
-
-    if wislistItem:
-        return {
-            "msg":"Already added in wishlist"
-        }
-    else :
-        wislistItem = WishlistModel(
-            user_id = user.id,
-            product_id = productid
+        raise HTTPException(
+            status_code=404,
+            detail="Product not Found"
         )
-        db.add(wislistItem)
-    
-    db.commit()
-    db.refresh(wislistItem)
 
-    return product
+    wishlistItem = db.query(WishlistModel).filter(
+        WishlistModel.user_id == user.id,
+        WishlistModel.product_id == productid
+    ).first() 
+
+
+    # already exists
+    if wishlistItem:
+        return {
+            "success": False,
+            "message": "Already added in wishlist"
+        }
+
+    # create wishlist item
+    wishlistItem = WishlistModel(
+        user_id=user.id,
+        product_id=productid
+    )
+
+    db.add(wishlistItem)
+    db.commit()
+    db.refresh(wishlistItem)
+
+    return {
+        "success": True,
+        "message": "Wishlist Added Successfully",
+        "wishlistItem": wishlistItem
+    }
 
 # ==== Get Wishlist ====
 def getWishlist(db:Session,user):
@@ -377,7 +395,7 @@ def getWishlist(db:Session,user):
         raise HTTPException(404, detail="Wishlist is Empty")
     for wish in wishlists:
         print("Wishlist Products:- ",wish.product)
-    
+    print("Length:- ",len(wishlists))
     return wishlists
 # ==== Remove from wishlist ======
 def removeWishlistProduct(wishlistid:int,db:Session,user):
